@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 //use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use OpenAdmin\Admin\Admin;
 use OpenAdmin\Admin\Controllers\AdminController;
 use OpenAdmin\Admin\Form;
 use OpenAdmin\Admin\Grid;
@@ -108,35 +109,60 @@ class ComunicadoController extends AdminController
         $userName = Auth::user()->name;
         $fechaActual = Carbon::now()->format('Y-m-d');
 
-        $form->html('
-        <div class="accordion" id="formAccordion">
-            <div class="accordion-item">
-                <h4 class="accordion-header" id="headingOne">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                        <b>INFORMACIÓN</b>
-                    </button>
-                </h4>
-                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#formAccordion">
-                    <div class="accordion-body">
-                        <ol>
-                            <li>
-                                Los campos marcados con <strong>*</strong> son obligatorios.
-                            </li>
-                            <li>
-                                Si se edita un registro y este tiene información exactamente igual a otro ya registrado, no se podrá guardar/registrar.
-                            </li>
-                            <li>
-                                Se le mostrará una alerta indicandole el motivo del error y en que campo se encuentra dicho error.
-                            </li>
-                        </ol>
+        Admin::style('
+            li{
+                color:#1c1c1c;
+                font-weight:bold;
+                padding:.2rem;
+                font-size:1rem;
+            }
+        ');
+
+        $form->column(12 / 1, function ($form) {
+            $form->html('
+            <div class="accordion" id="formAccordion">
+                <div class="accordion-item">
+                    <h4 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            <b>INFORMACIÓN - INSTRUCCIONES</b>
+                        </button>
+                    </h4>
+                    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#formAccordion">
+                        <div class="accordion-body">
+                            <ol>
+                                <li>
+                                    Los campos marcados con <strong class="text-danger">*</strong> son obligatorios.
+                                </li>
+                                <li>
+                                    Si se edita un registro y este tiene información exactamente igual a otro ya registrado, no se podrá guardar/registrar.
+                                </li>
+                                <li>
+                                    Se le mostrará una alerta indicandole el motivo del error y en que campo se encuentra dicho error.
+                                </li>
+                                <li>
+                                    Se le hará saber cuando un campo este vacio mediante el borde de un color rojo.
+                                </li>
+                                <li>
+                                    En los campos (Título, Tema y Descripción) NO podrá ingresar carácteres especiales como: (comillas dobles/simples, punto y coma / dos puntos, guión medio y bajo entre otros)
+                                </li>
+                                <li>
+                                    Los campos sombreados NO se pueden modificar.
+                                </li>
+                                <li>
+                                    En el campo (Tema) podrá buscar y elegir un tema y/o escribir el la opción que deseé (obviamente dentro de las dos opciones disponibles únicamente).
+                                </li>
+                                <li>
+                                    Una vez registrado el comunicado se enviará al correo distribuidor de la empresa y les llegará a todos aquellos empleados que tengan correo empresarial. En caso de que usted no tenga correo empresarial, podrá ver la noticia en el panel principal de la immtranet.
+                                </li>
+                            </ol>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        ');
+            ');
+        });
 
-        $form->text('usuario', __('Autor'))->readonly()->value($userName)
-            ->help('<strong>Este campo indica el nombre del usuario que está registrando el comunicado. La información NO se puede modificar.</strong>');
+        $form->text('usuario', __('Autor'))->readonly()->value($userName);
         $form->text('Titulo', __('Titulo'))->placeholder('Título')->rules('required|regex:/^[A-Za-zÀ-ÖØ-öø-ÿ0-9]+(?:[\s.,:;][A-Za-zÀ-ÖØ-öø-ÿ0-9]+)*$/u|min:10|max:60|unique:comunicados,Titulo', [
             'regex' => '
                 Este campo ÚNICAMENTE acepta lo siguiente:
@@ -148,11 +174,7 @@ class ComunicadoController extends AdminController
             'min' => 'Mínimo deben de ser 10 carácteres/letras/números.',
             'max' => 'Máximo deben de ser 60 carácteres/letras/números.',
             'unique' => 'Ya existe un comunicado con ese Titulo.',
-        ])->help('<strong>Este campo ÚNICAMENTE acepta lo siguiente:
-        1. Letras/Letras acentuadas.
-        2. Números
-        3. Punto, Coma, Punto y Coma, Doble Punto, Comillas Simples, Comillas Dobles.
-        4. Únicamente un espacio en blanco entre palabras.</strong>');
+        ]);
         $form->datetime('Fecha', __('Fecha'))
             ->format('YYYY-MM-DD HH:mm:ss')
             ->rules([
@@ -171,12 +193,12 @@ class ComunicadoController extends AdminController
                         $fail(__('La hora debe estar entre las 09:00 a.m. y las 17:00 p.m.'));
                     }
                 },
-            ])->help('<strong>El formato del horario es de 24 hrs</strong>');
+            ]);
 
         $form->select('Sede', __('Sede'))->options(function ($name) {
             $users = DB::table('sedes')->pluck('sede', 'sede');
             return $users;
-        })->help('<strong>En este campo puede buscar y/o seleccionar la sede en la que se ejecutará el comunicado.</strong>')->required();
+        })->required();
         $form->textarea('Descripcion', __('Descripcion'))->placeholder('Descripción del comunicado.')->rules('required|regex:/^[A-Za-zÀ-ÖØ-öø-ÿ0-9]+(?:[\s.,:;][A-Za-zÀ-ÖØ-öø-ÿ0-9]+)*$/u|min:10|max:300', [
             'regex' => '
             Este campo ÚNICAMENTE acepta lo siguiente:
@@ -187,14 +209,8 @@ class ComunicadoController extends AdminController
         ',
             'min' => 'Mínimo deben de ser 10 carácteres/letras/números',
             'max' => 'Máximo deben de ser 300 carácteres/letras/números',
-        ])
-            ->help('<strong>Este campo ÚNICAMENTE acepta lo siguiente:
-            1. Letras/Letras acentuadas.
-            2. Números
-            3. Punto, Coma, Punto y Coma, Doble Punto, Comillas Simples, Comillas Dobles.
-            4. Únicamente un espacio en blanco entre palabras.</strong>');
+        ]);
         $form->image('Image', __('Imagen'))
-            ->required()
             ->rules([
                 'mimes:jpg,png', // Asegura que el archivo tenga extensión .jpg o .png
                 function ($attribute, $value, $fail) {
@@ -207,8 +223,7 @@ class ComunicadoController extends AdminController
                 },
             ], [
                 'mimes' => 'Únicamente acepta imágenes tipo .jpg y/o .png',
-            ])
-            ->help('<strong>Solo se permiten archivos JPG y PNG.</strong>');
+            ]);
 
         $form->confirm('¿Está seguro que desea registrar esta información？');
 
