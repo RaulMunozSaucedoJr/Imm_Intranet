@@ -9,7 +9,17 @@
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
-        "laravel/tinker": "^2.8"
+        "laravel/tinker": "^2.8",
+        "livewire/livewire": "^3.4",
+        "maatwebsite/excel": "^3.1",
+        "open-admin-ext/ckeditor": "^1.0",
+        "open-admin-ext/grid-sortable": "^1.0",
+        "open-admin-ext/helpers": "^1.0",
+        "open-admin-ext/media-manager": "^1.0",
+        "open-admin-ext/scheduling": "^1.0",
+        "open-admin-org/open-admin": "^1.0",
+        "spatie/laravel-permission": "^6.3",
+        "tecnickcom/tcpdf": "^6.6"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
